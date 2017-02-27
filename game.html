@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title> Awesome Project </title>
+	<style type='text/css'>
+		canvas { border: thin solid black; }
+	</style>
+</head>
+<body>
+	<canvas id='canvas' width='800' height='600'></canvas>
+	<script type='text/javascript'>
+		var WIDTH = 800;
+		var HEIGHT = 600;
+		var Time = 0;
+		var FPS = 60;
+		var COUNT = 14;
+		var TUBA=1;
+		var DRUMLINE=2;
+		var FLUTE = 3;
+		var JUDGE = 4;
+		var score = 0;
+		var juice= 0;
+		var rect = {};
+		var boxes = [];
+		var player = {
+			x: 100,
+			y: 100,
+			w: 50,
+			h: 50,
+			dx: 5,
+			dy: 5,
+		};
+
+		var move = {
+		left: false,
+		right: false,
+		up: false,
+		down: false,
+		};
+
+		var canvasElement = document.getElementById('canvas');
+		canvasElement.width = WIDTH;
+		canvasElement.height = HEIGHT;
+		var ctx = canvasElement;
+
+		function init()
+		{
+			for ( var i=0; i<COUNT; i++) {
+				var rect = {};
+					rect.x = 10 + Math.random()*700;
+					rect.y= 10 + Math.random()*500;
+
+					if ( i<=3 ) {
+						rect.w = 30;
+						rect.h = 30;
+						rect.dx= 1;
+						rect.dy= 1;
+						rect.type = TUBA;
+					}
+					else if (i>3 && i<=6) {
+						rect.w = 75;
+						rect.h = 50;
+						rect.dx= 3;
+						rect.dy= -2;
+						rect.type = DRUMLINE;
+					}
+					else if(i>6 && i<=12) {
+						rect.w = 25;
+						rect.h = 5;
+						rect.dx= 2;
+						rect.dy= -5;
+						rect.type = FLUTE;
+					}
+					else {
+						rect.w = 15;
+						rect.h = 15;
+						rect.dx= 13;
+						rect.dy= 15;
+						rect.type = JUDGE;
+					}
+			boxes.push(rect);
+			}
+		}
+
+		if (canvasElement.getContext) {
+			ctx = canvasElement.getContext("2d");
+			init();
+
+			setInterval(function() {
+				update();
+				draw();
+			}, 1000/FPS);
+		}
+		else {
+			alert("Your browser doesn't seem to support the <canvas> element. Sorry.");
+		}
+
+		function collide (p, b) {
+			if (p.x > b.x + b.w )
+				return false;
+			if (p.y > b.y + b.h )
+				return false;
+			if (b.x > p.x + p.w )
+				return false;
+			if (b.y > p.y + p.h )
+				return false;
+
+			return true;
+			juice = 100;
+
+		}
+
+		function update() {
+			if ( move.up )
+				player.y -= player.dy;
+			if ( move.down )
+				player.y += player.dy;
+			if ( move.left )
+				player.x -= player.dx;
+			if ( move.right )
+				player.x += player.dx;
+
+			if ( player.x + player.w > WIDTH )
+				player.x = WIDTH - player.w;
+			if ( player.x < 0 )
+				player.x = 0;
+			if ( player.y + player.h > HEIGHT )
+				player.y = HEIGHT - player.h;
+			if ( player.y < 0 )
+				player.y = 0;
+
+			for ( var i=0; i<boxes.length; i++ ) {
+			boxes[i].x += boxes[i].dx;
+			boxes[i].y += boxes[i].dy;
+
+			if(boxes[i].x + boxes[i].w > WIDTH || boxes[i].x < 0 )
+				boxes[i].dx *= -1;
+			if( boxes[i].y + boxes[i].h > HEIGHT || boxes[i].y < 0 )
+				boxes[i].dy *= -1;
+
+			if(juice >0)
+				juice-= 10;
+			if(juice<=0){
+				if ( collide(player, boxes[i]) == true ) {
+						if ( boxes[i].type == DRUMLINE ) {
+								score-= 7;
+							}
+							if ( boxes[i].type == TUBA ){
+								score+= 4;
+							}
+							if ( boxes[i].type == FLUTE ) {
+								score+= 2;
+							}
+							if (boxes[i].type == JUDGE ) {
+								score+= 10;
+							}
+
+						boxes[i].x = Math.random()*(WIDTH-boxes[i].w);
+						boxes[i].y = Math.random()*(HEIGHT-boxes[i].h);
+						}
+				}
+
+			}
+			for ( var i=0; i<boxes.length; i++ ) {
+				boxes[i].x += boxes[i].dx;
+				boxes[i].y += boxes[i].dy;
+
+				if(boxes[i].x + boxes[i].w > WIDTH || boxes[i].x < 0 )
+					boxes[i].dx *= -1;
+				if( boxes[i].y + boxes[i].h > HEIGHT || boxes[i].y < 0 )
+					boxes[i].dy *= -1;
+			}
+		}
+
+
+		function draw() {
+			if( Time <= 500){
+				ctx.clearRect(0, 0, WIDTH, HEIGHT);
+				ctx.fillStyle = "#000000";
+				ctx.fillRect(player.x, player.y, player.w, player.h);
+				ctx.fillText("Score "+score, 50, 20);
+				var timer= 500-Time;
+				ctx.fillText("Time left "+timer, 100,20);
+				for (var i=0; i<boxes.length; i++ ) {
+					if ( boxes[i].type == TUBA ) {
+						ctx.fillStyle = "#3370E0";
+						}
+					if(boxes[i].type ==DRUMLINE){
+						ctx.fillStyle ="#E04C4A";
+						}
+					if ( boxes[i].type ==FLUTE ) {
+						ctx.fillStyle = "#4BE072";
+						}
+					if ( boxes[i].type == JUDGE ) {
+						ctx.fillStyle = "#EDED51";
+					}
+
+					ctx.fillRect(boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h); }
+				for ( var i=0; i<boxes.lenght; i++ ) {
+					if ( boxes[i].friend == 0 ) {
+						ctx.fillRect(boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h);
+				}
+			}
+			Time++;
+			}
+
+
+		}
+
+			function handleKeyDown(evt) {
+				if (evt.keyCode == 38 ) /* UP */
+					move.up = true;
+				if (evt.keyCode == 40 ) /* DOWN */
+					move.down = true;
+				if (evt.keyCode == 37 ) /* LEFT */
+					move.left = true;
+				if (evt.keyCode == 39 ) /* RIGHT */
+					move.right = true;
+
+				if ( 37 <= evt.keyCode && evt.keyCode <= 40 )
+					evt.preventDefault();
+				}
+
+			function handleKeyUp(evt) {
+				if (evt.keyCode == 38 ) /* UP */
+					move.up = false;
+				if (evt.keyCode == 40 ) /* DOWN */
+					move.down = false;
+				if (evt.keyCode == 37 ) /* LEFT */
+					move.left = false;
+				if (evt.keyCode == 39 ) /* RIGHT */
+					move.right = false;
+
+				if ( 37 <= evt.keyCode && evt.keyCode <= 40 )
+					evt.preventDefault();
+				}
+
+				document.addEventListener('keydown', handleKeyDown);
+				document.addEventListener('keyup', handleKeyUp);
+
+
+	</script>
+</body>
+</html>
+
+
